@@ -1,49 +1,27 @@
-#include <winsock2.h>
 #include <stdio.h>
 #include <windows.h>
-#include <process.h>
-#include <vector>
+#include "Server.h"
 
 #define SERVER_PORT 1170
-
-// restore socket and information
-class socketAndInfo{
-public:
-    socketAndInfo(SOCKET s, struct sockaddr_in sc) { socket = s; saClient = sc; }
-    SOCKET socket;
-    struct sockaddr_in saClient;
-};
-
-WORD wVersionRequested;
-WSADATA wsaData;
-SOCKET sListen;
-struct sockaddr_in saServer, saClient;
-std::vector<socketAndInfo> sServer;
-
-void init();
-void clientThread(void *arg);
-
-int main {
-    init();
-    SOCKET s;
-    int length = sizeof(saClient);
-    HANDLE handle;
     
-    while(1) {
-        s = accpet(sListen, (struct sockaddr*)&saClient, length);
-        if(s == INVALID_SOCKET) {
-            printf("accept() failed!\n");
-            continue;
-        }
-        printf("Accept client: %s: %d\n", inet_ntoa(saClient.sin_addr), ntohs(saClient.sin_port));
-        sServer.push_back(new socketAndInfo(s, saClient));
-        handler = (HANDLE)_beginThead();
-    }
+static unsigned __stdcall ThreadStaticEntryPoint(void *pThis) {
+    Server* pServer = (Server*)pThis;
+    pServer->clientThread();
 
-    return 0;
+    return 1;
 }
 
-void init() {
+Server::Server() {
+    name = "MyServer";
+    init();
+}
+
+Server::Server(std::string name) {
+    this->name = name;
+    init();
+}
+
+void Server::init() {
     int ret;
 
     wVersionRequested = MAKEWORD(2, 2);
