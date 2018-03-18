@@ -6,10 +6,13 @@
 
 #define SERVER_PORT 1170
 
-typedef struct _socketAndInfo{
+// restore socket and information
+class socketAndInfo{
+public:
+    socketAndInfo(SOCKET s, struct sockaddr_in sc) { socket = s; saClient = sc; }
     SOCKET socket;
     struct sockaddr_in saClient;
-}socketAndInfo;
+};
 
 WORD wVersionRequested;
 WSADATA wsaData;
@@ -24,6 +27,7 @@ int main {
     init();
     SOCKET s;
     int length = sizeof(saClient);
+    HANDLE handle;
     
     while(1) {
         s = accpet(sListen, (struct sockaddr*)&saClient, length);
@@ -32,7 +36,8 @@ int main {
             continue;
         }
         printf("Accept client: %s: %d\n", inet_ntoa(saClient.sin_addr), ntohs(saClient.sin_port));
-
+        sServer.push_back(new socketAndInfo(s, saClient));
+        handler = (HANDLE)_beginThead();
     }
 
     return 0;
