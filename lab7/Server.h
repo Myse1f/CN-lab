@@ -2,8 +2,8 @@
 #define _SERVER_H_
 
 #include <winsock2.h>
-#include <process.h>
 #include <vector>
+#include <thread>
 #include <string>
 
 struct socketAndInfo {
@@ -28,8 +28,7 @@ private:
     SOCKET sListen;
     struct sockaddr_in saServer;
     std::vector<socketAndInfo> sServer;
+    std::vector<std::thread> clientSet;
 };
-
-void clientThread(void *arg);
 
 #endif

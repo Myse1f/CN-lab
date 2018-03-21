@@ -3,13 +3,6 @@
 #include "Server.h"
 
 #define SERVER_PORT 1170
-    
-static unsigned __stdcall ThreadStaticEntryPoint(void *pThis) {
-    Server* pServer = (Server*)pThis;
-    pServer->clientThread();
-
-    return 1;
-}
 
 Server::Server() {
     name = "MyServer";
@@ -60,5 +53,11 @@ void Server::init() {
         exit(-1);
     }
     printf("Waiting for client to connect!\n");
+}
+
+void Server::clientThread() {
+    while(1) {
+
+    }
 }
 
