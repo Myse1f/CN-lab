@@ -61,3 +61,18 @@ void Server::clientThread() {
     }
 }
 
+void Server::run() {
+    int length;
+    SOCKET s;
+    struct sockaddr_in sa;
+    
+    while(1) {
+        length = sizeof(saClient);
+        s = accept(sListen, (struct sockaddr*)&sa, &length);
+        if(s == INVALID_SOCKET) {
+            printf("Accept() failed!\n");
+            continue;
+        }
+        printf("Accept client: %s: %d\n", inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
+    }
+}

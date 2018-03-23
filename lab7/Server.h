@@ -7,7 +7,7 @@
 #include <string>
 
 struct socketAndInfo {
-    socketAndInfo(SOCKET s, struct sockaddr_in sc) { socket = s; saClient = sc; }
+    socketAndInfo(SOCKET s, struct sockaddr_in sa) { socket = s; saClient = sa; }
     SOCKET socket;
     struct sockaddr_in saClient;
 };
@@ -26,7 +26,6 @@ private:
     WORD wVersionRequested;
     WSADATA wsaData;
     SOCKET sListen;
-    struct sockaddr_in saServer;
     std::vector<socketAndInfo> sServer;
     std::vector<std::thread> clientSet;
 };
