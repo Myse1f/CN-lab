@@ -3,7 +3,6 @@
 
 #include <winsock2.h>
 #include <vector>
-#include <thread>
 #include <string>
 
 struct socketAndInfo {
@@ -16,10 +15,10 @@ class Server {
 public:
     Server();
     Server(std::string name);
-    void init();
+    int init();
     void run();
     void clientThread();
-    static unsigned __stdcall ThreadStaticEntryPoint(void *pThis);
+    int clear(); 
 
 private:
     std::string name;
