@@ -4,11 +4,14 @@
 #include <winsock2.h>
 #include <vector>
 #include <string>
+#include <cstring>
+#include "protocol.h"
 
 struct socketAndInfo {
-    socketAndInfo(SOCKET s, struct sockaddr_in sa) { socket = s; saClient = sa; }
+    socketAndInfo() {}
+    socketAndInfo(SOCKET s,  char *ip, unsigned short p) { socket = s;  strcpy_s(client.IPaddress, ip); client.port=p;}
     SOCKET socket;
-    struct sockaddr_in saClient;
+    ClientInfo client;
 };
 
 class Server {
@@ -17,7 +20,7 @@ public:
     Server(std::string name);
     int init();
     void run();
-    void clientThread();
+    void clientThread(socketAndInfo si);
     int clear(); 
 
 private:
@@ -25,8 +28,10 @@ private:
     WORD wVersionRequested;
     WSADATA wsaData;
     SOCKET sListen;
-    std::vector<socketAndInfo> sServer;
+    struct sockaddr_in saServer;
+    std::vector<socketAndInfo> sServer; 
     std::vector<std::thread> clientSet;
+    bool keepGoing;
 };
 
 #endif
