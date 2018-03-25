@@ -5,11 +5,13 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include "mingw.thread.h"
 #include "protocol.h"
 
 struct socketAndInfo {
     socketAndInfo() {}
-    socketAndInfo(SOCKET s,  char *ip, unsigned short p) { socket = s;  strcpy_s(client.IPaddress, ip); client.port=p;}
+    socketAndInfo(SOCKET s,  char *ip, unsigned short p) { socket = s;  strcpy(client.IPaddress, ip); client.port=p;}
+    bool operator==(const socketAndInfo &si) { return this->socket == si.socket; }
     SOCKET socket;
     ClientInfo client;
 };
@@ -20,8 +22,8 @@ public:
     Server(std::string name);
     int init();
     void run();
-    void clientThread(socketAndInfo si);
-    int clear(); 
+    void clientThread(socketAndInfo &si);
+    void clear(); 
 
 private:
     std::string name;
@@ -30,7 +32,7 @@ private:
     SOCKET sListen;
     struct sockaddr_in saServer;
     std::vector<socketAndInfo> sServer; 
-    std::vector<std::thread> clientSet;
+    std::vector<std::thread*> clientSet;
     bool keepGoing;
 };
 

@@ -2,13 +2,15 @@
 #include "protocol.h"
 #include <stdio.h>
 #include <windows.h>
-#include <thread>
 #include <algorithm>
 #include <time.h>
-#include "Server.h"
-#include "protocol.h"
+#include "mingw.thread.h"
 
 #define SERVER_PORT 1170
+
+void listenFromClient(Server *s, socketAndInfo &si) {
+    s->clientThread(si);
+}
 
 Server::Server() {
     name = "MyServer";
@@ -65,7 +67,7 @@ int Server::init() {
     return 0;
 }
 
-int Server::clear() {
+void Server::clear() {
     
     //close all socket
     for(std::vector<socketAndInfo>::iterator it = sServer.begin(); it != sServer.end(); ++it) {
@@ -81,8 +83,8 @@ int Server::clear() {
     sServer.clear();
 
     //join all thread
-    for(std::vector<std::thread>::iterator it = clientSet.begin(); it != clientSet.end(); ++it) {
-        it->join();
+    for(std::vector<std::thread*>::iterator it = clientSet.begin(); it != clientSet.end(); ++it) {
+        (*it)->join();
     }
     clientSet.clear();
 
@@ -91,7 +93,9 @@ int Server::clear() {
     printf("Server Stop!\n");
 }
 
-void Server::clientThread(socketAndInfo si) {
+void Server::clientThread(socketAndInfo &si) {
+    //printf("debug2\n");
+
     int nLeft, ret;
     char *ptr;
     DataPackage dp;
@@ -103,6 +107,7 @@ void Server::clientThread(socketAndInfo si) {
 
         while(nLeft > 0) {
             ret = recv(si.socket, ptr, nLeft, 0);
+            //printf("debug ret=%d\n", ret);
             if(ret == SOCKET_ERROR) {
                 printf("recv() failed!\n");
                 break;
@@ -194,7 +199,7 @@ void Server::clientThread(socketAndInfo si) {
                     if(clientNo > sServer.size()) {  //target client isn't exist, send error message
                         dpSend.header.type = (unsigned short)0x30;
                         dpSend.header.isOver = 1;
-                        strcpy_s(dp.data, "Target client is not exist!");
+                        strcpy(dp.data, "Target client is not exist!");
                         dpSend.header.dataSize = strlen(dp.data);
                         send(si.socket, (char*)&dpSend, sizeof(dpSend), 0);
 
@@ -236,10 +241,12 @@ void Server::run() {
         printf("Accept client: %s: %d\n", inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
         
         //save client info and start a new thread to deal with this client's requestments
-        socketAndInfo tmp(s, sa.sin_addr, sa.sin_port);
+        socketAndInfo tmp(s, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
         sServer.push_back(tmp);
-        std::thread th(clientThread, tmp);    //new thread
+        std::thread *th = new std::thread(listenFromClient, this, tmp);    //new thread
         clientSet.push_back(th);
+    
+        //printf("debug1\n");
     }
 
     clear();
