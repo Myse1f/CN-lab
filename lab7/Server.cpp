@@ -4,12 +4,17 @@
 #include <windows.h>
 #include <algorithm>
 #include <time.h>
+#include <conio.h>
 #include "mingw.thread.h"
 
 #define SERVER_PORT 1170
 
 void listenFromClient(Server *s, socketAndInfo &si) {
     s->clientThread(si);
+}
+
+void listenFromKeyboard(Server *s) {
+    s->stop();
 }
 
 Server::Server() {
@@ -87,6 +92,7 @@ void Server::clear() {
         (*it)->join();
     }
     clientSet.clear();
+    keyboardThread->join();
 
     closesocket(sListen);
     WSACleanup();
@@ -133,7 +139,7 @@ void Server::clientThread(socketAndInfo &si) {
         switch(dp.header.type) {
             case 0x00:  //get time
             {
-                printf("Client %s:%d require for the server time!", si.ClientInfo.IPaddress, si.ClientInfo.port);
+                printf("Client %s:%d require for the server time!", si.client.IPaddress, si.client.port);
                 time_t t;
                 struct tm *pTime;
                 /******************************************************************************
@@ -161,7 +167,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
             case 0x01:  //get server name
             {
-                printf("Client %s:%d require for the server name!", si.ClientInfo.IPaddress, si.ClientInfo.port);
+                printf("Client %s:%d require for the server name!", si.client.IPaddress, si.client.port);
                 dpSend.header.isOver = (unsigned char)1;
                 dpSend.header.type = (unsigned char)0x11;
                 memcpy(dpSend.data, name.c_str(), name.length());
@@ -171,7 +177,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
             case 0x02:  //get client list
             {
-                printf("Client %s:%d require for the client list!", si.ClientInfo.IPaddress, si.ClientInfo.port);
+                printf("Client %s:%d require for the client list!", si.client.IPaddress, si.client.port);
                 char *ptr = dpSend.data;
                 int total = 0;
                 std::vector<socketAndInfo>::iterator it = sServer.begin();
@@ -199,7 +205,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
             case 0x03:  //send message to another client
             {
-                prinf("Client %s:%d require to send message!", si.ClientInfo.IPaddress, si.ClientInfo.port);
+                printf("Client %s:%d require to send message!", si.client.IPaddress, si.client.port);
                 do {
                     unsigned short clientNo;
                     memcpy((char*)&clientNo, (char*)dp.data, sizeof(unsigned short));
@@ -235,7 +241,7 @@ void Server::run() {
     SOCKET s;
     struct sockaddr_in sa;
     int length = sizeof(sa);
-    
+    keyboardThread = new std::thread(listenFromKeyboard, this);
     
     while(1) {
         s = accept(sListen, (struct sockaddr*)&sa, &length);
@@ -255,6 +261,22 @@ void Server::run() {
     
         //printf("debug1\n");
     }
-
     clear();
+}
+
+void Server::stop() {
+    char key;
+    sClient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    struct sockaddr_in tmp;
+    tmp.sin_family = AF_INET;
+    tmp.sin_port = htons(SERVER_PORT);
+    tmp.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+    do {
+        key = getch();
+        if(key == 'q' || key == 'Q') {
+            keepGoing = false;
+            connect(sClient, (struct sockaddr*)&tmp, sizeof(tmp));
+            break;
+        }
+    }while(1);
 }

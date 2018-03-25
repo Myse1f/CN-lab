@@ -24,15 +24,17 @@ public:
     void run();
     void clientThread(socketAndInfo &si);
     void clear(); 
+    void stop();
 
 private:
     std::string name;
     WORD wVersionRequested;
     WSADATA wsaData;
-    SOCKET sListen;
+    SOCKET sListen, sClient;
     struct sockaddr_in saServer;
     std::vector<socketAndInfo> sServer; 
     std::vector<std::thread*> clientSet;
+    std::thread *keyboardThread;
     bool keepGoing;
 };
 
