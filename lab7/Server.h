@@ -25,6 +25,7 @@ public:
     void clientThread(socketAndInfo &si);
     void clear(); 
     void stop();
+    char* getTime();
 
 private:
     std::string name;
@@ -36,6 +37,7 @@ private:
     std::vector<std::thread*> clientSet;
     std::thread *keyboardThread;
     bool keepGoing;
+    char timeStamp[50];
 };
 
 #endif

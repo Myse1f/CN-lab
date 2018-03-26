@@ -68,7 +68,7 @@ int Server::init() {
         return -1;
     }
 
-    printf("Waiting for client to connect!\n");
+    printf("%s Waiting for client to connect!\n", getTime());
     return 0;
 }
 
@@ -96,7 +96,7 @@ void Server::clear() {
 
     closesocket(sListen);
     WSACleanup();
-    printf("Server Stop!\n");
+    printf("%s Server Stop!\n", getTime());
 }
 
 void Server::clientThread(socketAndInfo &si) {
@@ -120,7 +120,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
 
             if(ret == 0) {
-                printf("Client has closed the connection!\n");
+                printf("%s Client has closed the connection!\n", getTime());
                 //close socket
                 std::vector<socketAndInfo>::iterator it =  find(sServer.begin(), sServer.end(), si);
                 closesocket(it->socket);
@@ -139,7 +139,7 @@ void Server::clientThread(socketAndInfo &si) {
         switch(dp.header.type) {
             case 0x00:  //get time
             {
-                printf("Client %s:%d require for the server time!", si.client.IPaddress, si.client.port);
+                printf("%s Client %s:%d require for the server time!", getTime(), si.client.IPaddress, si.client.port);
                 time_t t;
                 struct tm *pTime;
                 /******************************************************************************
@@ -167,7 +167,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
             case 0x01:  //get server name
             {
-                printf("Client %s:%d require for the server name!", si.client.IPaddress, si.client.port);
+                printf("%s Client %s:%d require for the server name!", getTime(), si.client.IPaddress, si.client.port);
                 dpSend.header.isOver = (unsigned char)1;
                 dpSend.header.type = (unsigned char)0x11;
                 memcpy(dpSend.data, name.c_str(), name.length());
@@ -177,7 +177,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
             case 0x02:  //get client list
             {
-                printf("Client %s:%d require for the client list!", si.client.IPaddress, si.client.port);
+                printf("%s Client %s:%d require for the client list!", getTime(),  si.client.IPaddress, si.client.port);
                 char *ptr = dpSend.data;
                 int total = 0;
                 std::vector<socketAndInfo>::iterator it = sServer.begin();
@@ -205,7 +205,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
             case 0x03:  //send message to another client
             {
-                printf("Client %s:%d require to send message!", si.client.IPaddress, si.client.port);
+                printf("%s Client %s:%d require to send message!", getTime(), si.client.IPaddress, si.client.port);
                 do {
                     unsigned short clientNo;
                     memcpy((char*)&clientNo, (char*)dp.data, sizeof(unsigned short));
@@ -251,7 +251,8 @@ void Server::run() {
             printf("Accept() failed!\n");
             continue;
         }
-        printf("Accept client: %s: %d\n", inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
+        
+        printf("%s Accept client: %s: %d\n", getTime(), inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
         
         //save client info and start a new thread to deal with this client's requestments
         socketAndInfo tmp(s, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
@@ -279,4 +280,13 @@ void Server::stop() {
             break;
         }
     }while(1);
+}
+
+char* Server::getTime() {
+    time_t t;
+    time(&t);
+    struct tm *tmp_time = localtime(&t);
+    strftime(timeStamp, sizeof(timeStamp), "%Y/%m/%d %H:%M:%S", tmp_time);
+
+    return timeStamp;
 }
