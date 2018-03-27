@@ -237,7 +237,7 @@ void Server::clientThread(socketAndInfo &si) {
 
 void Server::run() {
     //need to response "exit" option
-    printf("Server Start!, Press 'q' to stop!"\n);
+    printf("Server Start! Press 'q' to stop!"\n);
     
     keepGoing = true;
     SOCKET s;
