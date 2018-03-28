@@ -71,7 +71,6 @@ int Server::init() {
         return -1;
     }
 
-    printf("%s Waiting for client to connect!\n", getTime());
     return 0;
 }
 
@@ -118,17 +117,22 @@ void Server::clientThread(socketAndInfo &si) {
             ret = recv(si.socket, ptr, nLeft, 0);
             //printf("debug ret=%d\n", ret);
             if(ret == SOCKET_ERROR) {
-                printf("recv() failed!\n");
-                break;
-            }
-
-            if(ret == 0) {
-                printf("%s Client has closed the connection!\n", getTime());
+                printf("%s Client %s:%d has closed the connection!\n", getTime(), si.client.IPaddress, si.client.port);
                 //close socket
                 std::vector<socketAndInfo>::iterator it =  find(sServer.begin(), sServer.end(), si);
                 closesocket(it->socket);
                 sServer.erase(it);
                 end = true;
+                break;
+            }
+
+            if(ret == 0) {
+                // printf("%s Client has closed the connection!\n", getTime());
+                // //close socket
+                // std::vector<socketAndInfo>::iterator it =  find(sServer.begin(), sServer.end(), si);
+                // closesocket(it->socket);
+                // sServer.erase(it);
+                // end = true;
                 break;
             }
 
@@ -140,6 +144,7 @@ void Server::clientThread(socketAndInfo &si) {
 
         DataPackage dpSend; //dataPackage to be sent
         switch(dp.header.type) {
+            //printf("1\n");
             case 0x00:  //get time
             {
                 printf("%s Client %s:%d require for the server time!\n", getTime(), si.client.IPaddress, si.client.port);
@@ -165,6 +170,7 @@ void Server::clientThread(socketAndInfo &si) {
                 dpSend.header.type = (unsigned char)0x10;
                 memcpy(dpSend.data, pTime, sizeof(struct tm));
                 dpSend.header.dataSize = (unsigned short)sizeof(struct tm);
+                //printf("%lu %d %d\n", dpSend.header.dataSize, dpSend.header.isOver, dpSend.header.type);
                 send(si.socket, (char*)&dpSend, sizeof(dpSend), 0); //send time infomation
                 break;
             }
@@ -212,27 +218,37 @@ void Server::clientThread(socketAndInfo &si) {
                 do {
                     unsigned short clientNo;
                     memcpy((char*)&clientNo, (char*)dp.data, sizeof(unsigned short));
-                    if(clientNo > sServer.size()) {  //target client isn't exist, send error message
+                    if(clientNo > sServer.size()-1) {  //target client isn't exist, send error message
                         dpSend.header.type = (unsigned short)0x30;
                         dpSend.header.isOver = 1;
-                        strcpy(dp.data, "Target client is not exist!");
+                        printf("%s Target client is not exist!\n", getTime());
+                        strcpy(dpSend.data, "Target client is not exist!");
                         dpSend.header.dataSize = strlen(dp.data);
                         send(si.socket, (char*)&dpSend, sizeof(dpSend), 0);
 
                         break;
                     }
 
+                    std::vector<socketAndInfo>::iterator it =  find(sServer.begin(), sServer.end(), si);
+                    unsigned short senderNo = (unsigned short)(it - sServer.begin());
+                    memcpy((char*)dpSend.data, &senderNo, sizeof(senderNo)); //set sender NO.
+
                     char *ptr = (char*)dp.data + sizeof(unsigned short);    //get message
-                    memcpy(dpSend.data, ptr, dp.header.dataSize-sizeof(unsigned short));    //copy message
+                    memcpy(dpSend.data+sizeof(senderNo), ptr, dp.header.dataSize-sizeof(unsigned short));    //copy message
                     dpSend.header.isOver = dp.header.isOver;
                     dpSend.header.type = (unsigned short)0x20;
-                    dpSend.header.dataSize = dp.header.dataSize - sizeof(unsigned short);
+                    dpSend.header.dataSize = dp.header.dataSize;
                     send(sServer[clientNo].socket, (char*)&dpSend, sizeof(dpSend), 0);  //send message
 
                 }while(!dp.header.isOver);
+                
                 break;
             }
-            default: break;
+            default: 
+            { 
+                printf("Error Data Package Format!\n");
+                break;
+            }
         }
     }
     
@@ -240,7 +256,7 @@ void Server::clientThread(socketAndInfo &si) {
 
 void Server::run() {
     //need to response "exit" option
-    printf("Server Start! Press 'q' to stop!"\n);
+    printf("%s Server Start! Press 'q' to stop!\n", getTime());
     
     keepGoing = true;
     SOCKET s;
@@ -249,6 +265,7 @@ void Server::run() {
     keyboardThread = new std::thread(listenFromKeyboard, this);
     
     while(1) {
+        printf("%s Waiting for client to connect!\n", getTime());
         s = accept(sListen, (struct sockaddr*)&sa, &length);
         if(keepGoing == false)
             break;
@@ -260,9 +277,9 @@ void Server::run() {
         printf("%s Accept client: %s: %d\n", getTime(), inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
         
         //save client info and start a new thread to deal with this client's requestments
-        socketAndInfo tmp(s, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
-        sServer.push_back(tmp);
-        std::thread *th = new std::thread(listenFromClient, this, tmp);    //new thread
+        socketAndInfo *tmp = new socketAndInfo(s, inet_ntoa(sa.sin_addr), ntohs(sa.sin_port));
+        sServer.push_back(*tmp);
+        std::thread *th = new std::thread(listenFromClient, this, *tmp);    //new thread
         clientSet.push_back(th);
     
         //printf("debug1\n");
