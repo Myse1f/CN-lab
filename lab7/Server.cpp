@@ -1,3 +1,6 @@
+//Created By Yufan Wu
+//2018 3 27
+
 #include "Server.h"
 #include "protocol.h"
 #include <stdio.h>
@@ -237,6 +240,8 @@ void Server::clientThread(socketAndInfo &si) {
 
 void Server::run() {
     //need to response "exit" option
+    printf("Server Start! Press 'q' to stop!"\n);
+    
     keepGoing = true;
     SOCKET s;
     struct sockaddr_in sa;
