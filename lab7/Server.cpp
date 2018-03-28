@@ -35,7 +35,7 @@ int Server::init() {
     wVersionRequested = MAKEWORD(2, 2);
     ret = WSAStartup(wVersionRequested, &wsaData);
     if(ret != 0) {
-        printf("WSAStart failed!");
+        printf("WSAStart failed!\n");
         return -1;
     }
     if(LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
@@ -139,7 +139,7 @@ void Server::clientThread(socketAndInfo &si) {
         switch(dp.header.type) {
             case 0x00:  //get time
             {
-                printf("%s Client %s:%d require for the server time!", getTime(), si.client.IPaddress, si.client.port);
+                printf("%s Client %s:%d require for the server time!\n", getTime(), si.client.IPaddress, si.client.port);
                 time_t t;
                 struct tm *pTime;
                 /******************************************************************************
@@ -167,7 +167,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
             case 0x01:  //get server name
             {
-                printf("%s Client %s:%d require for the server name!", getTime(), si.client.IPaddress, si.client.port);
+                printf("%s Client %s:%d require for the server name!\n", getTime(), si.client.IPaddress, si.client.port);
                 dpSend.header.isOver = (unsigned char)1;
                 dpSend.header.type = (unsigned char)0x11;
                 memcpy(dpSend.data, name.c_str(), name.length());
@@ -177,7 +177,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
             case 0x02:  //get client list
             {
-                printf("%s Client %s:%d require for the client list!", getTime(),  si.client.IPaddress, si.client.port);
+                printf("%s Client %s:%d require for the client list!\n", getTime(),  si.client.IPaddress, si.client.port);
                 char *ptr = dpSend.data;
                 int total = 0;
                 std::vector<socketAndInfo>::iterator it = sServer.begin();
@@ -205,7 +205,7 @@ void Server::clientThread(socketAndInfo &si) {
             }
             case 0x03:  //send message to another client
             {
-                printf("%s Client %s:%d require to send message!", getTime(), si.client.IPaddress, si.client.port);
+                printf("%s Client %s:%d require to send message!\n", getTime(), si.client.IPaddress, si.client.port);
                 do {
                     unsigned short clientNo;
                     memcpy((char*)&clientNo, (char*)dp.data, sizeof(unsigned short));
