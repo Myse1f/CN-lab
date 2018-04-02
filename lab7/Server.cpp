@@ -116,7 +116,7 @@ void Server::clientThread(socketAndInfo &si) {
         while(nLeft > 0) {
             ret = recv(si.socket, ptr, nLeft, 0);
             //printf("debug ret=%d\n", ret);
-            if(ret == SOCKET_ERROR) {
+            if(ret == SOCKET_ERROR || ret == 0) {
                 printf("%s Client %s:%d has closed the connection!\n", getTime(), si.client.IPaddress, si.client.port);
                 //close socket
                 std::vector<socketAndInfo>::iterator it =  find(sServer.begin(), sServer.end(), si);
@@ -126,15 +126,15 @@ void Server::clientThread(socketAndInfo &si) {
                 break;
             }
 
-            if(ret == 0) {
-                // printf("%s Client has closed the connection!\n", getTime());
-                // //close socket
-                // std::vector<socketAndInfo>::iterator it =  find(sServer.begin(), sServer.end(), si);
-                // closesocket(it->socket);
-                // sServer.erase(it);
-                // end = true;
-                break;
-            }
+            // if(ret == 0) {
+            //     printf("%s Client has closed the connection!\n", getTime());
+            //     //close socket
+            //     std::vector<socketAndInfo>::iterator it =  find(sServer.begin(), sServer.end(), si);
+            //     closesocket(it->socket);
+            //     sServer.erase(it);
+            //     end = true;
+            //     break;
+            // }
 
             nLeft -= ret;
             ptr += ret;
@@ -228,6 +228,8 @@ void Server::clientThread(socketAndInfo &si) {
 
                         break;
                     }
+
+                    //printf("Debug: recieve a package!\n");
 
                     std::vector<socketAndInfo>::iterator it =  find(sServer.begin(), sServer.end(), si);
                     unsigned short senderNo = (unsigned short)(it - sServer.begin());
