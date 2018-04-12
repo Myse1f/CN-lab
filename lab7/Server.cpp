@@ -149,6 +149,7 @@ void Server::clientThread(socketAndInfo &si) {
             {
                 printf("%s Client %s:%d require for the server time!\n", getTime(), si.client.IPaddress, si.client.port);
                 time_t t;
+                //static int k = 0;
                 struct tm *pTime;
                 /******************************************************************************
                 * struct tm
@@ -172,6 +173,7 @@ void Server::clientThread(socketAndInfo &si) {
                 dpSend.header.dataSize = (unsigned short)sizeof(struct tm);
                 //printf("%lu %d %d\n", dpSend.header.dataSize, dpSend.header.isOver, dpSend.header.type);
                 send(si.socket, (char*)&dpSend, sizeof(dpSend), 0); //send time infomation
+                //printf("%d sent!\n", ++k);
                 break;
             }
             case 0x01:  //get server name
