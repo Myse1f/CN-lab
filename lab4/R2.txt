@@ -1,0 +1,89 @@
+R2#show running-config 
+Building configuration...
+
+Current configuration : 876 bytes
+!
+version 12.2
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R2
+!
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ ip address 8.8.8.70 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface FastEthernet1/0
+ ip address 9.9.9.70 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface Serial2/0
+ no ip address
+ shutdown
+!
+interface Serial3/0
+ no ip address
+ shutdown
+!
+interface FastEthernet4/0
+ no ip address
+ shutdown
+!
+interface FastEthernet5/0
+ no ip address
+ shutdown
+!
+ip classless
+ip route 192.168.3.0 255.255.255.0 9.9.9.1 
+ip route 192.168.4.0 255.255.255.0 9.9.9.1 
+ip route 192.168.1.0 255.255.255.0 8.8.8.1 
+ip route 192.168.2.0 255.255.255.0 8.8.8.1 
+!
+ip flow-export version 9
+!
+!
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end

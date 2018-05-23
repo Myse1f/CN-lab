@@ -1,0 +1,80 @@
+R0#show running-config 
+Building configuration...
+
+Current configuration : 793 bytes
+!
+version 12.2
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname R0
+!
+!
+!
+!
+!
+!
+!
+!
+ip cef
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+!
+interface FastEthernet0/0.1
+ encapsulation dot1Q 1 native
+ ip address 192.168.1.2 255.255.255.0
+!
+interface FastEthernet0/0.2
+ encapsulation dot1Q 2
+ ip address 192.168.2.2 255.255.255.0
+!
+interface FastEthernet0/1
+ ip address 8.8.8.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+ip classless
+ip route 192.168.3.0 255.255.255.0 8.8.8.70 
+ip route 192.168.4.0 255.255.255.0 8.8.8.70 
+ip route 0.0.0.0 0.0.0.0 8.8.8.70 
+!
+ip flow-export version 9
+!
+!
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
